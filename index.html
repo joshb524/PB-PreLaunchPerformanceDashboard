@@ -8,7 +8,7 @@
   <title>Meta Ads Iterative Dashboard</title>
 </head>
 <body>
-  <header id="header">
+  <header id="header" class="header-bar card">
     <input type="file" id="fileInput" accept=".csv" aria-label="Upload CSV" />
     <button id="demoBtn">Load Demo Data</button>
     <button id="newIter">New</button>
@@ -21,6 +21,13 @@
     <label>Min Spend <input type="number" id="minSpend" /></label>
     <label>Min Impr <input type="number" id="minImpr" /></label>
     <button id="clearData">Clear Local Data</button>
+    <div id="totals" class="totals card"></div>
+  </header>
+  <main id="layout">
+    <section id="grid" class="card" aria-label="Activity grid"></section>
+    <section id="tree" class="card" aria-label="Campaign tree"></section>
+    <section id="side" class="card" aria-label="Notes and progress">
+=======
     <div id="totals"></div>
   </header>
   <main id="layout">

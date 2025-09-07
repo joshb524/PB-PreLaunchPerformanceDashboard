@@ -1,47 +1,110 @@
 :root {
   color-scheme: dark;
-  --bg: #111;
-  --fg: #eee;
+color-scheme: dark;
+  --bg-gradient: radial-gradient(circle at 25% 25%, #3b2a7a 0%, #0e0b1d 100%);
+  --surface: #1c1f2e;
+  --surface-alt: #262b40;
+  --fg: #e0e6ff;
+  --accent: #6751e8;
+  --accent-hover: #7a6cf5;
   --green: #2ecc71;
   --yellow: #f1c40f;
   --red: #e74c3c;
   --gray: #555;
 }
+
 body {
-  background: var(--bg);
+  background: var(--bg-gradient);
   color: var(--fg);
-  font-family: sans-serif;
+  font-family: system-ui, sans-serif;
+  line-height: 1.4;
   margin: 0;
 }
+
+.card {
+  background: linear-gradient(145deg, var(--surface), var(--surface-alt));
+  border-radius: 0.75rem;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 8px 16px rgba(0, 0, 0, 0.6);
+  padding: 0.75rem;
+}
+
+.header-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(145deg, #2b2750, #1f1b39);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
 #layout {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 0.5rem;
-  height: calc(100vh - 120px);
+  gap: 1rem;
+  height: calc(100vh - 140px);
+  padding: 0 1rem 1rem;
 }
-#layout > section {
+
+#layout > .card {
   overflow: auto;
-  background: #1b1b1b;
-  border-radius: 0.75rem;
-  padding: 0.5rem;
 }
-header {
+
+button,
+input[type="date"],
+input[type="number"],
+input[type="file"] {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  font: inherit;
+}
+
+button {
+  background: var(--accent);
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: var(--accent-hover);
+}
+
+button:focus {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 2px;
+}
+
+label {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  padding: 0.5rem;
   align-items: center;
+  gap: 0.25rem;
 }
+
+.totals {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
+}
+
 .chip {
   display: inline-block;
   padding: 0.125rem 0.5rem;
   border-radius: 0.5rem;
   font-size: 0.75rem;
+  color: #000;
 }
-.chip.green { background: var(--green); color: #000; }
-.chip.yellow { background: var(--yellow); color: #000; }
-.chip.red { background: var(--red); color: #000; }
-.chip.gray { background: var(--gray); }
+
+.chip.green { background: var(--green); }
+.chip.yellow { background: var(--yellow); }
+.chip.red { background: var(--red); }
+.chip.gray { background: var(--gray); color: #fff; }
+
 .tooltip {
   position: fixed;
   z-index: 1000;
@@ -49,4 +112,84 @@ header {
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   pointer-events: none;
+}
+src/ui.js
+New
++75
+-0
+
+import { colorFor } from './compute.js';
+import { getRecommendation } from './recs.js';
+import { GUARDRAILS } from './benchmarks.js';
+
+export function renderTotals(totals) {
+  const el = document.getElementById('totals');
+  if (!totals) { el.textContent = ''; return; }
+  el.innerHTML = `Spend: $${totals.spend.toFixed(2)} | Purchases: ${totals.purchases} | CPR: $${totals.CPR.toFixed(2)}`;
+}
+
+export function renderTree(campaigns) {
+  const tree = document.getElementById('tree');
+  tree.innerHTML = '';
+  const ul = document.createElement('ul');
+  campaigns.forEach(c => {
+    const li = document.createElement('li');
+    li.textContent = `${c.name} ($${c.metrics.spend.toFixed(2)})`;
+    const rec = document.createElement('div');
+    rec.textContent = getRecommendation(c);
+    li.appendChild(rec);
+    const ulSet = document.createElement('ul');
+    c.children.forEach(s => {
+      const liSet = document.createElement('li');
+      liSet.textContent = `${s.name} ($${s.metrics.spend.toFixed(2)})`;
+      const ulAd = document.createElement('ul');
+      s.children.forEach(a => {
+        const liAd = document.createElement('li');
+        liAd.textContent = `${a.name} CPR $${a.metrics.CPR.toFixed(2)}`;
+        ulAd.appendChild(liAd);
+      });
+      liSet.appendChild(ulAd);
+      ulSet.appendChild(liSet);
+    });
+    li.appendChild(ulSet);
+    ul.appendChild(li);
+  });
+  tree.appendChild(ul);
+}
+
+export function renderGrid(campaigns) {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  const table = document.createElement('table');
+  const header = document.createElement('tr');
+  header.innerHTML = '<th>Ad</th>';
+  const dates = getDates();
+  dates.forEach(d => { const th = document.createElement('th'); th.textContent = d.slice(5); header.appendChild(th); });
+  table.appendChild(header);
+  campaigns.forEach(c => c.children.forEach(s => s.children.forEach(a => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${a.name}</td>`;
+    dates.forEach(d => {
+      const cell = document.createElement('td');
+      const day = a.daily[d];
+      if (day) {
+        cell.textContent = `$${day.spend.toFixed(1)}`;
+        cell.title = `Spend $${day.spend.toFixed(2)}\nPurchases ${day.purchases}`;
+      }
+      tr.appendChild(cell);
+    });
+    table.appendChild(tr);
+  })));
+  grid.appendChild(table);
+}
+
+function getDates() {
+  const arr = [];
+  const today = new Date();
+  for (let i = GUARDRAILS.Lookback_grid_days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    arr.push(d.toISOString().slice(0,10));
+  }
+  return arr;
 }
