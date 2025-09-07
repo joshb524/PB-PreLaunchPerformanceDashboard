@@ -1,0 +1,52 @@
+:root {
+  color-scheme: dark;
+  --bg: #111;
+  --fg: #eee;
+  --green: #2ecc71;
+  --yellow: #f1c40f;
+  --red: #e74c3c;
+  --gray: #555;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: sans-serif;
+  margin: 0;
+}
+#layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 0.5rem;
+  height: calc(100vh - 120px);
+}
+#layout > section {
+  overflow: auto;
+  background: #1b1b1b;
+  border-radius: 0.75rem;
+  padding: 0.5rem;
+}
+header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  align-items: center;
+}
+.chip {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+}
+.chip.green { background: var(--green); color: #000; }
+.chip.yellow { background: var(--yellow); color: #000; }
+.chip.red { background: var(--red); color: #000; }
+.chip.gray { background: var(--gray); }
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  background: #222;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  pointer-events: none;
+}
